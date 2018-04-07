@@ -58,6 +58,16 @@ def fen_pos_to_tuple(position):
     return rank, file
 
 
+def is_clicked(rect):
+    """Returns True if the piece / tile has been clicked, else False."""
+    mouse_pos = pygame.mouse.get_pos()
+
+    if rect.left < mouse_pos[0] < rect.right and rect.top < mouse_pos[1] < rect.bottom:
+        return True
+
+    return False
+
+
 class Board(pygame.sprite.Sprite):
     """Represents the board and tracks the pieces on it."""
 
@@ -160,15 +170,6 @@ class Piece(pygame.sprite.Sprite):
         self.colour = colour
         self.piece_type = piece_type
 
-    def is_clicked(self):
-        """Returns True if the piece has been clicked, else False."""
-        mouse_pos = pygame.mouse.get_pos()
-
-        if self.rect.left < mouse_pos[0] < self.rect.right and self.rect.top < mouse_pos[1] < self.rect.bottom:
-            return True
-
-        return False
-
     def highlight_legal_moves(self):
         """Highlights all the legal moves on the board."""
 
@@ -179,7 +180,88 @@ class Piece(pygame.sprite.Sprite):
             move = "".join([self.fen_position, tile.fen_position])
 
             if self.game.stockfish.is_move_correct(move):
-                tile.highlight()
+
+                if self.piece_type == KING and abs(tile.tuple_position[1] - self.tuple_position[1]) == 2:
+                    tile.highlight(BLUE)
+
+                else:
+                    tile.highlight()
+
+    def make_move(self, new_location):
+        """Makes a move to a new location if it's legal, else returns None."""
+
+        old_tuple_pos = self.tuple_position
+        old_pos = self.fen_position
+        new_pos = new_location.fen_position
+        move = "".join([old_pos, new_pos])
+
+        if self.game.stockfish.is_move_correct(move):
+            self.fen_position = new_pos
+            self.tuple_position = fen_pos_to_tuple(self.fen_position)
+
+            if self.piece_type == KING and abs(new_location.tuple_position[1] - old_tuple_pos[1]) == 2:
+                self.castle(new_location)
+
+            self.check_kill_piece()
+            self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
+                                            y=self.tuple_position[0] * TILE_SIZE)
+
+            for tile in self.game.highlighted_tiles:
+                tile.remove_highlight()
+
+            self.game.moves_made.append(move)
+
+            if self.game.turn == WHITE:
+                self.game.turn = BLACK
+
+            else:
+                self.game.turn = WHITE
+
+            self.game.highlighted_piece = None
+
+        return None
+
+    def check_kill_piece(self):
+        """Checks if a piece should be killed and, if it should, kills it."""
+
+        for piece in self.game.pieces_list:
+
+            if piece.fen_position == self.fen_position and piece != self:
+                piece.kill()
+
+    def castle(self, new_location):
+        """Castles the King and Rook."""
+
+        for piece in self.game.pieces_list:
+
+            if new_location.fen_position == "g1":
+
+                if piece.fen_position == "h1":
+                    piece.move_in_castle("f1")
+
+            elif new_location.fen_position == "c1":
+
+                if piece.fen_position == "a1":
+                    piece.move_in_castle("d1")
+
+            elif new_location.fen_position == "g8":
+
+                if piece.fen_position == "h8":
+                    piece.move_in_castle("f8")
+
+            elif new_location.fen_position == "c8":
+
+                if piece.fen_position == "a8":
+                    piece.move_in_castle("d8")
+
+    def move_in_castle(self, new_location):
+        """Moves the Rook during a castle."""
+
+        self.fen_position = new_location
+        self.tuple_position = fen_pos_to_tuple(self.fen_position)
+
+        self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
+                                        y=self.tuple_position[0] * TILE_SIZE)
 
 
 class King(Piece):

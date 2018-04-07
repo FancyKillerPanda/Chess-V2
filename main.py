@@ -37,6 +37,15 @@ class Game:
 
         self.font_name = pygame.font.match_font(FONT_NAME)
 
+        # piece being highlighted tracker
+        self.highlighted_piece = None
+
+        # tracks who's turn it is
+        self.turn = WHITE
+
+        # list of moves made
+        self.moves_made = []
+
         self.load_data()  # loads all the other data
 
     def new(self):
@@ -66,6 +75,7 @@ class Game:
     def update(self):
         """Updates the sprites for the game loop."""
         self.all_sprites_list.update()
+        self.stockfish.set_position(self.moves_made)
 
     def events(self):
         """Handles the game's events."""
@@ -84,10 +94,18 @@ class Game:
 
             if event.type == MOUSEBUTTONDOWN:
 
+                for tile in self.tiles_list:
+
+                    if is_clicked(tile.rect) and self.highlighted_piece is not None:
+                        self.highlighted_piece.make_move(tile)
+
                 for piece in self.pieces_list:
 
-                    if piece.is_clicked():
-                        piece.highlight_legal_moves()
+                    if is_clicked(piece.rect):
+
+                        if piece.colour == self.turn:
+                            piece.highlight_legal_moves()
+                            self.highlighted_piece = piece
 
     def draw(self):
         """Draws the sprites to the screen."""
