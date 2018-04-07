@@ -45,6 +45,7 @@ class Game:
             sprite.kill()
 
         self.board = Board(self)
+        self.setup_board()
 
         self.run()
 
@@ -120,6 +121,33 @@ class Game:
         """Loads the external data for the game."""
         self.dir = path.dirname(__file__)
         self.image_dir = path.join(self.dir, "Images")
+
+    def setup_board(self):
+        """Sets up the board to the starting position."""
+
+        Rook(self, BLACK, 0, 0)
+        Knight(self, BLACK, 0, 1)
+        Bishop(self, BLACK, 0, 2)
+        Queen(self, BLACK, 0, 3)
+        King(self, BLACK, 0, 4)
+        Bishop(self, BLACK, 0, 5)
+        Knight(self, BLACK, 0, 6)
+        Rook(self, BLACK, 0, 7)
+
+        for column in range(8):
+            Pawn(self, BLACK, 1, column)
+
+        Rook(self, WHITE, 7, 0)
+        Knight(self, WHITE, 7, 1)
+        Bishop(self, WHITE, 7, 2)
+        Queen(self, WHITE, 7, 3)
+        King(self, WHITE, 7, 4)
+        Bishop(self, WHITE, 7, 5)
+        Knight(self, WHITE, 7, 6)
+        Rook(self, WHITE, 7, 7)
+
+        for column in range(8):
+            Pawn(self, WHITE, 6, column)
 
 
 if __name__ == "__main__":

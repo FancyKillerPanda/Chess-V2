@@ -24,3 +24,11 @@ TUPLE_POSITION_NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7]
 FONT_NAME = "Calibri"  # font
 
 FPS = 60  # frame rate
+
+# piece types
+KING = "King"
+QUEEN = "Queen"
+ROOK = "Rook"
+BISHOP = "Bishop"
+KNIGHT = "Knight"
+PAWN = "Pawn"

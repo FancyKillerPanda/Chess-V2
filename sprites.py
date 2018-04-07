@@ -1,6 +1,11 @@
+from re import split
+from os.path import join
+
 import pygame
 
 from settings import *
+
+vector = pygame.math.Vector2
 
 
 def tuple_to_fen_pos(position):
@@ -51,10 +56,6 @@ def fen_pos_to_tuple(position):
         return
 
     return rank, file
-
-
-def setup_board(fen_position):
-    """Takes a FEN string as a parameter and places pieces on the board accordingly."""
 
 
 class Board(pygame.sprite.Sprite):
@@ -126,14 +127,124 @@ class Tile(pygame.sprite.Sprite):
         self.colour = colour
 
 
+# noinspection PyArgumentList
 class Piece(pygame.sprite.Sprite):
     """Represents the base class for the pieces."""
 
-    def __init__(self, game, image_name):
+    def __init__(self, game, image_name, colour, piece_type, row, column):
         self.groups = game.all_sprites_list, game.pieces_list
         super().__init__(self.groups)
         self.game = game
 
-        self.image_pic = pygame.image.load(image_name).convert_alpha()
+        self.image_pic = pygame.image.load(join(game.image_dir, image_name)).convert_alpha()
         self.image = pygame.transform.scale(self.image_pic, (TILE_SIZE, TILE_SIZE))
+        self.rect = self.image.get_rect(x=column * TILE_SIZE + TILE_KEY_SIZE, y=row * TILE_SIZE)
+
+        self.tuple_position = vector(row, column)
+        self.fen_position = tuple_to_fen_pos((int(self.tuple_position[0]), int(self.tuple_position[1])))
+
+        self.colour = colour
+        self.piece_type = piece_type
+
+
+class King(Piece):
+    """Class to represent the King piece."""
+
+    def __init__(self, game, colour, row, column):
+        """Constructs the King."""
+
+        piece_type = KING
+
+        if colour == WHITE:
+            image = "White King.png"
+
+        else:
+            image = "Black King.png"
+
+        super().__init__(game, image, colour, piece_type, row, column)
+
+
+class Queen(Piece):
+    """Class to represent the Queen piece."""
+
+    def __init__(self, game, colour, row, column):
+        """Constructs the Queen."""
+
+        piece_type = QUEEN
+
+        if colour == WHITE:
+            image = "White Queen.png"
+
+        else:
+            image = "Black Queen.png"
+
+        super().__init__(game, image, colour, piece_type, row, column)
+
+
+class Rook(Piece):
+    """Class to represent the Rook piece."""
+
+    def __init__(self, game, colour, row, column):
+        """Constructs the Rook."""
+
+        piece_type = BISHOP
+
+        if colour == WHITE:
+            image = "White Rook.png"
+
+        else:
+            image = "Black Rook.png"
+
+        super().__init__(game, image, colour, piece_type, row, column)
+
+
+class Bishop(Piece):
+    """Class to represent the Bishop piece."""
+
+    def __init__(self, game, colour, row, column):
+        """Constructs the Bishop."""
+
+        piece_type = BISHOP
+
+        if colour == WHITE:
+            image = "White Bishop.png"
+
+        else:
+            image = "Black Bishop.png"
+
+        super().__init__(game, image, colour, piece_type, row, column)
+
+
+class Knight(Piece):
+    """Class to represent the Knight piece."""
+
+    def __init__(self, game, colour, row, column):
+        """Constructs the Knight."""
+
+        piece_type = KNIGHT
+
+        if colour == WHITE:
+            image = "White Knight.png"
+
+        else:
+            image = "Black Knight.png"
+
+        super().__init__(game, image, colour, piece_type, row, column)
+
+
+class Pawn(Piece):
+    """Class to represent the Pawn piece."""
+
+    def __init__(self, game, colour, row, column):
+        """Constructs the Pawn."""
+
+        piece_type = PAWN
+
+        if colour == WHITE:
+            image = "White Pawn.png"
+
+        else:
+            image = "Black Pawn.png"
+
+        super().__init__(game, image, colour, piece_type, row, column)
 
