@@ -1,3 +1,4 @@
 .idea/
 Plan-TODO.txt
 __pycache__/
+venv/
