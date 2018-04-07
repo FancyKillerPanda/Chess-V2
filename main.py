@@ -13,10 +13,11 @@ class Game:
 
     def __init__(self):
         """Initialises the game window and game elements."""
-        pygame.init()  # initialises pygame's engine
+
+        #  initialises PyGame's engine
+        pygame.init()
 
         # instance attributes defined outside of __init__
-
         self.dir = None
         self.image_dir = None
 
@@ -35,6 +36,7 @@ class Game:
         self.pieces_list = pygame.sprite.Group()
         self.highlighted_tiles = pygame.sprite.Group()
 
+        # default font
         self.font_name = pygame.font.match_font(FONT_NAME)
 
         # piece being highlighted tracker
@@ -55,11 +57,14 @@ class Game:
         for sprite in self.all_sprites_list:
             sprite.kill()
 
+        # creates and sets up the board
         self.board = Board(self)
         self.setup_board()
 
+        # initialises the Stockfish engine
         self.stockfish = Stockfish(STOCKFISH_EXE_PATH)
 
+        # calls the main loop
         self.run()
 
     def run(self):
@@ -80,22 +85,27 @@ class Game:
     def events(self):
         """Handles the game's events."""
 
-        for event in pygame.event.get():  # gets events
+        # grabs all the PyGame events
+        for event in pygame.event.get():
 
+            # if the red cross (top-right corner) is clicked
             if event.type == QUIT:
                 self.playing = False  # ends loop in self.run()
                 self.running = False  # ends loop outside class
 
             elif event.type == KEYUP:
 
+                # allows the game to be quit when <escape> is pressed
                 if event.key == K_ESCAPE:
                     self.playing = False
                     self.running = False
 
+            # on mouse click
             if event.type == MOUSEBUTTONDOWN:
 
                 for tile in self.tiles_list:
 
+                    # moves the piece when a highlighted square is clicked
                     if is_clicked(tile.rect) and self.highlighted_piece is not None:
                         self.highlighted_piece.make_move(tile)
 
@@ -103,13 +113,18 @@ class Game:
 
                     if is_clicked(piece.rect):
 
+                        # when the piece is clicked, highlight its legal moves
                         if piece.colour == self.turn:
                             piece.highlight_legal_moves()
                             self.highlighted_piece = piece
 
     def draw(self):
         """Draws the sprites to the screen."""
+
+        # clears the screen
         self.screen.fill(BACKGROUND_COLOUR)
+
+        # draws everything in the all_sprites_list group
         self.all_sprites_list.draw(self.screen)
 
         pygame.display.flip()
@@ -137,6 +152,7 @@ class Game:
         while waiting:
             self.clock.tick(FPS)
 
+            # grabs events and handles closing of the game and end of waiting
             for event in pygame.event.get():
 
                 if event.type == QUIT:
@@ -148,12 +164,17 @@ class Game:
 
     def load_data(self):
         """Loads the external data for the game."""
+
+        # directory that the main.py file is in
         self.dir = path.dirname(__file__)
+
+        # image directory
         self.image_dir = path.join(self.dir, "Images")
 
     def setup_board(self):
         """Sets up the board to the starting position."""
 
+        # first row of black pieces
         Rook(self, BLACK, 0, 0)
         Knight(self, BLACK, 0, 1)
         Bishop(self, BLACK, 0, 2)
@@ -163,9 +184,11 @@ class Game:
         Knight(self, BLACK, 0, 6)
         Rook(self, BLACK, 0, 7)
 
+        # black pawns
         for column in range(8):
             Pawn(self, BLACK, 1, column)
 
+        # first row of white pieces
         Rook(self, WHITE, 7, 0)
         Knight(self, WHITE, 7, 1)
         Bishop(self, WHITE, 7, 2)
@@ -175,6 +198,7 @@ class Game:
         Knight(self, WHITE, 7, 6)
         Rook(self, WHITE, 7, 7)
 
+        # white pawns
         for column in range(8):
             Pawn(self, WHITE, 6, column)
 
