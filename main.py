@@ -2,6 +2,7 @@ from os import path
 
 import pygame
 from pygame.locals import *
+from stockfish import Stockfish
 
 from settings import *
 from sprites import *
@@ -32,6 +33,7 @@ class Game:
         self.all_sprites_list = pygame.sprite.Group()
         self.tiles_list = pygame.sprite.Group()
         self.pieces_list = pygame.sprite.Group()
+        self.highlighted_tiles = pygame.sprite.Group()
 
         self.font_name = pygame.font.match_font(FONT_NAME)
 
@@ -46,6 +48,8 @@ class Game:
 
         self.board = Board(self)
         self.setup_board()
+
+        self.stockfish = Stockfish(STOCKFISH_EXE_PATH)
 
         self.run()
 
@@ -77,6 +81,13 @@ class Game:
                 if event.key == K_ESCAPE:
                     self.playing = False
                     self.running = False
+
+            if event.type == MOUSEBUTTONDOWN:
+
+                for piece in self.pieces_list:
+
+                    if piece.is_clicked():
+                        piece.highlight_legal_moves()
 
     def draw(self):
         """Draws the sprites to the screen."""

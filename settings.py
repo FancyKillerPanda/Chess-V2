@@ -32,3 +32,6 @@ ROOK = "Rook"
 BISHOP = "Bishop"
 KNIGHT = "Knight"
 PAWN = "Pawn"
+
+# path to the Stockfish executable
+STOCKFISH_EXE_PATH = r"C:\Users\Sahil\Desktop\Personal\Coding\Stockfish\Stockfish 9\Windows\stockfish_9_x64.exe"

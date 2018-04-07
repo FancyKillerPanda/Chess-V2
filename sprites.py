@@ -126,6 +126,20 @@ class Tile(pygame.sprite.Sprite):
 
         self.colour = colour
 
+    def highlight(self, colour=RED):
+        """Highlights the tile with a semi-transparent red colour."""
+
+        block = pygame.Surface((TILE_SIZE, TILE_SIZE))
+        block.set_alpha(155)
+        block.fill(colour)
+
+        self.image.blit(block, (0, 0))
+        self.game.highlighted_tiles.add(self)
+
+    def remove_highlight(self):
+        self.image.fill(self.colour)
+        self.game.highlighted_tiles.remove(self)
+
 
 # noinspection PyArgumentList
 class Piece(pygame.sprite.Sprite):
@@ -145,6 +159,27 @@ class Piece(pygame.sprite.Sprite):
 
         self.colour = colour
         self.piece_type = piece_type
+
+    def is_clicked(self):
+        """Returns True if the piece has been clicked, else False."""
+        mouse_pos = pygame.mouse.get_pos()
+
+        if self.rect.left < mouse_pos[0] < self.rect.right and self.rect.top < mouse_pos[1] < self.rect.bottom:
+            return True
+
+        return False
+
+    def highlight_legal_moves(self):
+        """Highlights all the legal moves on the board."""
+
+        for tile in self.game.highlighted_tiles:
+            tile.remove_highlight()
+
+        for tile in self.game.tiles_list:
+            move = "".join([self.fen_position, tile.fen_position])
+
+            if self.game.stockfish.is_move_correct(move):
+                tile.highlight()
 
 
 class King(Piece):
