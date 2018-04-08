@@ -230,6 +230,14 @@ class Game:
     def setup_board(self):
         """Sets up the board to the starting position."""
 
+        # black pawns
+        for column in range(8):
+            Pawn(self, BLACK, 1, column)
+
+        # white pawns
+        for column in range(8):
+            Pawn(self, WHITE, 6, column)
+                
         # first row of black pieces
         Rook(self, BLACK, 0, 0)
         Knight(self, BLACK, 0, 1)
@@ -240,10 +248,6 @@ class Game:
         Knight(self, BLACK, 0, 6)
         Rook(self, BLACK, 0, 7)
 
-        # black pawns
-        for column in range(8):
-            Pawn(self, BLACK, 1, column)
-
         # first row of white pieces
         Rook(self, WHITE, 7, 0)
         Knight(self, WHITE, 7, 1)
@@ -253,10 +257,6 @@ class Game:
         Bishop(self, WHITE, 7, 5)
         Knight(self, WHITE, 7, 6)
         Rook(self, WHITE, 7, 7)
-
-        # white pawns
-        for column in range(8):
-            Pawn(self, WHITE, 6, column)
 
 
 if __name__ == "__main__":
