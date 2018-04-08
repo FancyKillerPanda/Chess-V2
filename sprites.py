@@ -226,7 +226,6 @@ class Piece(pygame.sprite.Sprite):
             self.animate_move(old_pixel_pos, self.pixel_position)
 
             self.check_kill_piece()
-            # self.rect = self.image.get_rect(topleft=self.pixel_position)
 
             for tile in self.game.highlighted_tiles:
                 tile.remove_highlight()
@@ -246,8 +245,9 @@ class Piece(pygame.sprite.Sprite):
             self.tuple_position = fen_pos_to_tuple(self.fen_position)
             self.pixel_position = tuple_to_pixel_position(self.tuple_position)
 
+            self.animate_move(old_pixel_pos, self.pixel_position)
+
             self.check_kill_piece()
-            self.rect = self.image.get_rect(topleft=self.pixel_position)
 
             for tile in self.game.highlighted_tiles:
                 tile.remove_highlight()
@@ -300,11 +300,13 @@ class Piece(pygame.sprite.Sprite):
     def move_in_castle(self, new_location):
         """Moves the Rook during a castle."""
 
+        old_pixel_pos = self.pixel_position
         self.fen_position = new_location
         self.tuple_position = fen_pos_to_tuple(self.fen_position)
         self.pixel_position = tuple_to_pixel_position(self.tuple_position)
 
-        self.rect = self.image.get_rect(topleft=self.pixel_position)
+        self.animate_move(old_pixel_pos, self.pixel_position)
+        # self.rect = self.image.get_rect(topleft=self.pixel_position)
 
     def promote_pawn(self, move, chosen_piece):
         """Allows a pawn to be promoted to a different piece."""

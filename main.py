@@ -23,7 +23,7 @@ class Game:
         self.image_dir = None
 
         # creating the screen
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN | HWSURFACE | DOUBLEBUF)
         pygame.display.set_caption(TITLE)
 
         # variables for running the loops
