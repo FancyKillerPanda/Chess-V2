@@ -108,7 +108,6 @@ class Game:
         """Updates the sprites for the game loop."""
         self.all_sprites_list.update()
         self.stockfish.set_position(self.moves_made)
-        print(self.moves_made)
 
     def events(self):
         """Handles the game's events."""

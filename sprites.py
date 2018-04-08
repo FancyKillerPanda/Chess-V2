@@ -59,6 +59,12 @@ def fen_pos_to_tuple(position):
     return rank, file
 
 
+# noinspection PyArgumentList
+def tuple_to_pixel_position(position):
+    """Converts a tuple position to an (x, y) on the screen."""
+    return vector(position[1] * TILE_SIZE + TILE_KEY_SIZE, position[0] * TILE_SIZE)
+
+
 def is_clicked(rect):
     """Returns True if the piece / tile has been clicked, else False."""
     mouse_pos = pygame.mouse.get_pos()
@@ -169,13 +175,16 @@ class Piece(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image_pic, (TILE_SIZE, TILE_SIZE))
         self.rect = self.image.get_rect(x=column * TILE_SIZE + TILE_KEY_SIZE, y=row * TILE_SIZE)
 
-        self.tuple_position = vector(row, column)
-        self.fen_position = tuple_to_fen_pos((int(self.tuple_position[0]), int(self.tuple_position[1])))
+        self.tuple_position = row, column
+        self.fen_position = tuple_to_fen_pos((self.tuple_position[0], self.tuple_position[1]))
+        self.pixel_position = tuple_to_pixel_position(self.tuple_position)
 
         self.colour = colour
         self.piece_type = piece_type
 
         self.promotion_move = None
+
+        self.change_amount = vector(0, 0)
 
     def highlight_legal_moves(self):
         """Highlights all the legal moves on the board."""
@@ -201,20 +210,23 @@ class Piece(pygame.sprite.Sprite):
         """Makes a move to a new location if it's legal, else returns None."""
 
         old_tuple_pos = self.tuple_position
-        old_pos = self.fen_position
-        new_pos = new_location.fen_position
-        move = "".join([old_pos, new_pos])
+        old_fen_pos = self.fen_position
+        old_pixel_pos = self.pixel_position
+        new_fen_pos = new_location.fen_position
+        move = "".join([old_fen_pos, new_fen_pos])
 
         if self.game.stockfish.is_move_correct(move):
-            self.fen_position = new_pos
+            self.fen_position = new_fen_pos
             self.tuple_position = fen_pos_to_tuple(self.fen_position)
+            self.pixel_position = tuple_to_pixel_position(self.tuple_position)
 
             if self.piece_type == KING and abs(new_location.tuple_position[1] - old_tuple_pos[1]) == 2:
                 self.castle(new_location)
 
+            self.animate_move(old_pixel_pos, self.pixel_position)
+
             self.check_kill_piece()
-            self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
-                                            y=self.tuple_position[0] * TILE_SIZE)
+            # self.rect = self.image.get_rect(topleft=self.pixel_position)
 
             for tile in self.game.highlighted_tiles:
                 tile.remove_highlight()
@@ -230,12 +242,12 @@ class Piece(pygame.sprite.Sprite):
             self.game.highlighted_piece = None
 
         elif self.game.stockfish.is_move_correct("".join([move, "Q"])):
-            self.fen_position = new_pos
+            self.fen_position = new_fen_pos
             self.tuple_position = fen_pos_to_tuple(self.fen_position)
+            self.pixel_position = tuple_to_pixel_position(self.tuple_position)
 
             self.check_kill_piece()
-            self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
-                                            y=self.tuple_position[0] * TILE_SIZE)
+            self.rect = self.image.get_rect(topleft=self.pixel_position)
 
             for tile in self.game.highlighted_tiles:
                 tile.remove_highlight()
@@ -290,9 +302,9 @@ class Piece(pygame.sprite.Sprite):
 
         self.fen_position = new_location
         self.tuple_position = fen_pos_to_tuple(self.fen_position)
+        self.pixel_position = tuple_to_pixel_position(self.tuple_position)
 
-        self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
-                                        y=self.tuple_position[0] * TILE_SIZE)
+        self.rect = self.image.get_rect(topleft=self.pixel_position)
 
     def promote_pawn(self, move, chosen_piece):
         """Allows a pawn to be promoted to a different piece."""
@@ -318,6 +330,16 @@ class Piece(pygame.sprite.Sprite):
             self.game.moves_made.append("".join([move, "R"]))
 
         self.promotion_move = None
+
+    def animate_move(self, old_pos, new_pos):
+        self.change_amount = new_pos - old_pos
+
+    def update(self):
+        self.rect.x += self.change_amount.x / 46
+        self.rect.y += self.change_amount.y / 46
+
+        if self.rect.topleft == tuple(tuple_to_pixel_position(self.tuple_position)):
+            self.change_amount = vector(0, 0)
 
 
 class King(Piece):
