@@ -1,6 +1,7 @@
 from os import path
 
 import pygame
+import pygbutton
 from pygame.locals import *
 from stockfish import Stockfish
 
@@ -35,6 +36,7 @@ class Game:
         self.tiles_list = pygame.sprite.Group()
         self.pieces_list = pygame.sprite.Group()
         self.highlighted_tiles = pygame.sprite.Group()
+        self.buttons_list = pygame.sprite.Group()
 
         # default font
         self.font_name = pygame.font.match_font(FONT_NAME)
@@ -47,6 +49,31 @@ class Game:
 
         # list of moves made
         self.moves_made = []
+
+        # tracks if player is in the process of picking a piece to promote to
+        self.promoting = False
+        self.pawn_to_promote = None
+
+        # dim rectangle
+        self.dim_screen = pygame.Surface(self.screen.get_size()).convert_alpha(self.screen)
+        self.dim_screen.fill((0, 0, 0, 125))
+
+        # buttons for choice of piece to promote to
+        font = pygame.font.Font("freesansbold.ttf", 20)
+
+        self.promote_to_queen = pygbutton.PygButton((SCREEN_WIDTH / 2 - PROMOTE_BUTTON_WIDTH / 2,
+                                                     SCREEN_HEIGHT / 2 - PROMOTE_BUTTON_HEIGHT * 2,
+                                                     PROMOTE_BUTTON_WIDTH, PROMOTE_BUTTON_HEIGHT), "QUEEN", WHITE,
+                                                    BLACK, font=font)
+        self.promote_to_knight = pygbutton.PygButton((SCREEN_WIDTH / 2 - PROMOTE_BUTTON_WIDTH / 2,
+                                                      SCREEN_HEIGHT / 2 - PROMOTE_BUTTON_HEIGHT, PROMOTE_BUTTON_WIDTH,
+                                                      PROMOTE_BUTTON_HEIGHT), "KNIGHT", BLACK, WHITE, font=font)
+        self.promote_to_bishop = pygbutton.PygButton((SCREEN_WIDTH / 2 - PROMOTE_BUTTON_WIDTH / 2,
+                                                      SCREEN_HEIGHT / 2, PROMOTE_BUTTON_WIDTH, PROMOTE_BUTTON_HEIGHT),
+                                                     "BISHOP", WHITE, BLACK, font=font)
+        self.promote_to_rook = pygbutton.PygButton((SCREEN_WIDTH / 2 - PROMOTE_BUTTON_WIDTH / 2,
+                                                    SCREEN_HEIGHT / 2 + PROMOTE_BUTTON_HEIGHT, PROMOTE_BUTTON_WIDTH,
+                                                    PROMOTE_BUTTON_HEIGHT), "ROOK", BLACK, WHITE, font=font)
 
         self.load_data()  # loads all the other data
 
@@ -81,6 +108,7 @@ class Game:
         """Updates the sprites for the game loop."""
         self.all_sprites_list.update()
         self.stockfish.set_position(self.moves_made)
+        print(self.moves_made)
 
     def events(self):
         """Handles the game's events."""
@@ -103,20 +131,41 @@ class Game:
             # on mouse click
             if event.type == MOUSEBUTTONDOWN:
 
-                for tile in self.tiles_list:
+                # when not currently in the menu to promote a pawn
+                if not self.promoting:
 
-                    # moves the piece when a highlighted square is clicked
-                    if is_clicked(tile.rect) and self.highlighted_piece is not None:
-                        self.highlighted_piece.make_move(tile)
+                    for tile in self.tiles_list:
 
-                for piece in self.pieces_list:
+                        # moves the piece when a highlighted square is clicked
+                        if is_clicked(tile.rect) and self.highlighted_piece is not None:
+                            self.highlighted_piece.make_move(tile)
 
-                    if is_clicked(piece.rect):
+                    for piece in self.pieces_list:
 
-                        # when the piece is clicked, highlight its legal moves
-                        if piece.colour == self.turn:
-                            piece.highlight_legal_moves()
-                            self.highlighted_piece = piece
+                        if is_clicked(piece.rect):
+
+                            # when the piece is clicked, highlight its legal moves
+                            if piece.colour == self.turn:
+                                piece.highlight_legal_moves()
+                                self.highlighted_piece = piece
+
+            if self.promoting:
+
+                if "click" in self.promote_to_queen.handleEvent(event):
+                    self.promoting = False
+                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, QUEEN)
+
+                elif "click" in self.promote_to_knight.handleEvent(event):
+                    self.promoting = False
+                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, KNIGHT)
+
+                elif "click" in self.promote_to_bishop.handleEvent(event):
+                    self.promoting = False
+                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, BISHOP)
+
+                elif "click" in self.promote_to_rook.handleEvent(event):
+                    self.promoting = False
+                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, ROOK)
 
     def draw(self):
         """Draws the sprites to the screen."""
@@ -126,6 +175,14 @@ class Game:
 
         # draws everything in the all_sprites_list group
         self.all_sprites_list.draw(self.screen)
+
+        # draws on the dimness when promoting
+        if self.promoting:
+            self.screen.blit(self.dim_screen, (0, 0))
+            self.promote_to_queen.draw(self.screen)
+            self.promote_to_knight.draw(self.screen)
+            self.promote_to_bishop.draw(self.screen)
+            self.promote_to_rook.draw(self.screen)
 
         pygame.display.flip()
 

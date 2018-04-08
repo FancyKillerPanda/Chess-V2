@@ -33,5 +33,9 @@ BISHOP = "Bishop"
 KNIGHT = "Knight"
 PAWN = "Pawn"
 
+# pawn promotion button dimensions
+PROMOTE_BUTTON_WIDTH = 250
+PROMOTE_BUTTON_HEIGHT = 75
+
 # path to the Stockfish executable
 STOCKFISH_EXE_PATH = r"C:\Users\Sahil\Desktop\Personal\Coding\Stockfish\Stockfish 9\Windows\stockfish_9_x64.exe"

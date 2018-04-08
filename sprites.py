@@ -2,6 +2,7 @@ from re import split
 from os.path import join
 
 import pygame
+import pygbutton
 
 from settings import *
 
@@ -66,6 +67,10 @@ def is_clicked(rect):
         return True
 
     return False
+
+
+class BreakIter(Exception):
+    pass
 
 
 class Board(pygame.sprite.Sprite):
@@ -170,6 +175,8 @@ class Piece(pygame.sprite.Sprite):
         self.colour = colour
         self.piece_type = piece_type
 
+        self.promotion_move = None
+
     def highlight_legal_moves(self):
         """Highlights all the legal moves on the board."""
 
@@ -186,6 +193,9 @@ class Piece(pygame.sprite.Sprite):
 
                 else:
                     tile.highlight()
+
+            elif self.game.stockfish.is_move_correct("".join([move, "Q"])):
+                tile.highlight(GREEN)
 
     def make_move(self, new_location):
         """Makes a move to a new location if it's legal, else returns None."""
@@ -219,7 +229,28 @@ class Piece(pygame.sprite.Sprite):
 
             self.game.highlighted_piece = None
 
-        return None
+        elif self.game.stockfish.is_move_correct("".join([move, "Q"])):
+            self.fen_position = new_pos
+            self.tuple_position = fen_pos_to_tuple(self.fen_position)
+
+            self.check_kill_piece()
+            self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
+                                            y=self.tuple_position[0] * TILE_SIZE)
+
+            for tile in self.game.highlighted_tiles:
+                tile.remove_highlight()
+
+            self.game.promoting = True
+            self.promotion_move = move
+            self.game.pawn_to_promote = self
+
+            if self.game.turn == WHITE:
+                self.game.turn = BLACK
+
+            else:
+                self.game.turn = WHITE
+
+            self.game.highlighted_piece = None
 
     def check_kill_piece(self):
         """Checks if a piece should be killed and, if it should, kills it."""
@@ -262,6 +293,31 @@ class Piece(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(x=self.tuple_position[1] * TILE_SIZE + TILE_KEY_SIZE,
                                         y=self.tuple_position[0] * TILE_SIZE)
+
+    def promote_pawn(self, move, chosen_piece):
+        """Allows a pawn to be promoted to a different piece."""
+
+        position = self.tuple_position
+        self.kill()
+        # self.game.promoting = False
+
+        if chosen_piece == QUEEN:
+            Queen(self.game, self.colour, position[0], position[1])
+            self.game.moves_made.append("".join([move, "Q"]))
+
+        elif chosen_piece == KNIGHT:
+            Knight(self.game, self.colour, position[0], position[1])
+            self.game.moves_made.append("".join([move, "N"]))
+
+        elif chosen_piece == BISHOP:
+            Bishop(self.game, self.colour, position[0], position[1])
+            self.game.moves_made.append("".join([move, "B"]))
+
+        elif chosen_piece == ROOK:
+            Rook(self.game, self.colour, position[0], position[1])
+            self.game.moves_made.append("".join([move, "R"]))
+
+        self.promotion_move = None
 
 
 class King(Piece):
@@ -364,4 +420,3 @@ class Pawn(Piece):
             image = "Black Pawn.png"
 
         super().__init__(game, image, colour, piece_type, row, column)
-
