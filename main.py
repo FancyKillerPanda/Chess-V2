@@ -35,6 +35,7 @@ class Game:
         self.all_sprites_list = pygame.sprite.Group()
         self.tiles_list = pygame.sprite.Group()
         self.pieces_list = pygame.sprite.Group()
+        self.dead_pieces_list = pygame.sprite.Group()
         self.highlighted_tiles = pygame.sprite.Group()
         self.buttons_list = pygame.sprite.Group()
 
@@ -172,6 +173,9 @@ class Game:
         # clears the screen
         self.screen.fill(BACKGROUND_COLOUR)
 
+        # draws the dead pieces
+        self.draw_dead_pieces()
+
         # draws everything in the all_sprites_list group
         self.all_sprites_list.draw(self.screen)
 
@@ -237,7 +241,7 @@ class Game:
         # white pawns
         for column in range(8):
             Pawn(self, WHITE, 6, column)
-                
+
         # first row of black pieces
         Rook(self, BLACK, 0, 0)
         Knight(self, BLACK, 0, 1)
@@ -257,6 +261,41 @@ class Game:
         Bishop(self, WHITE, 7, 5)
         Knight(self, WHITE, 7, 6)
         Rook(self, WHITE, 7, 7)
+
+    def draw_dead_pieces(self):
+        """Draws the dead pieces on the side of the board."""
+
+        white_x = TILE_SIZE * 8 + TILE_KEY_SIZE + 50
+        white_y = 50
+        black_x = TILE_SIZE * 8 + TILE_KEY_SIZE + 50
+        black_y = SCREEN_HEIGHT - 50
+
+        white_piece_count = 0
+        black_piece_count = 0
+
+        for piece in self.dead_pieces_list:
+
+            if piece.colour == WHITE:
+                white_piece_count += 1
+                piece.rect.topleft = white_x, white_y
+
+                white_x += DEAD_PIECE_SIZE + 10
+
+                if white_piece_count == 6:
+                    white_piece_count = 0
+                    white_y += DEAD_PIECE_SIZE + 10
+                    white_x = TILE_SIZE * 8 + TILE_KEY_SIZE + 60
+
+            elif piece.colour == BLACK:
+                black_piece_count += 1
+                piece.rect.bottomleft = black_x, black_y
+
+                black_x += DEAD_PIECE_SIZE + 10
+
+                if black_piece_count == 6:
+                    black_piece_count = 0
+                    black_y -= DEAD_PIECE_SIZE + 10
+                    black_x = TILE_SIZE * 8 + TILE_KEY_SIZE + 60
 
 
 if __name__ == "__main__":

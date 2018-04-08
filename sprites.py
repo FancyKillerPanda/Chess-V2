@@ -270,7 +270,12 @@ class Piece(pygame.sprite.Sprite):
         for piece in self.game.pieces_list:
 
             if piece.fen_position == self.fen_position and piece != self:
-                piece.kill()
+                self.game.pieces_list.remove(piece)
+                self.game.dead_pieces_list.add(piece)
+
+                piece.tuple_position = (-1, -1)
+                piece.fen_position = "z0"
+                piece.image = pygame.transform.scale(piece.image_pic, (DEAD_PIECE_SIZE, DEAD_PIECE_SIZE))
 
     def castle(self, new_location):
         """Castles the King and Rook."""
