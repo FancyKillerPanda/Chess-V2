@@ -6,6 +6,10 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 GREY = (125, 125, 125)
 LIGHT_GREY = (200, 200, 200)
+YELLOW = (255, 255, 0)
+SOFT_GREEN = (0, 155, 0)
+SOFT_YELLOW = (155, 155, 0)
+SOFT_RED = (155, 0, 0)
 
 BACKGROUND_COLOUR = LIGHT_GREY
 
@@ -44,3 +48,12 @@ STOCKFISH_EXE_PATH = r"C:\Users\Sahil\Desktop\Personal\Coding\Stockfish\Stockfis
 # global single- and multi-player variables
 SINGLEPLAYER = "Singleplayer"
 MULTIPLAYER = "Multiplater"
+
+# start screen button dimensions
+BUTTON_WIDTH = 200
+BUTTON_HEIGHT = 60
+
+# difficulty of Stockfish (represents search depth)
+EASY = 1
+MEDIUM = 4
+HARD = 10

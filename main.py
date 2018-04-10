@@ -1,7 +1,7 @@
 from os import path
 
 import pygame
-import pygbutton
+from pygbutton import PygButton
 from pygame.locals import *
 from stockfish import Stockfish
 
@@ -80,6 +80,15 @@ class Game:
         self.game_mode = MULTIPLAYER  # default multiplayer
         self.single_player_colour = None
         self.stockfish_difficulty = 1
+
+        # start screen buttons
+        self.ss_singleplayer_button = None
+        self.ss_multiplayer_button = None
+        self.ss_black_button = None
+        self.ss_white_button = None
+        self.ss_easy_button = None
+        self.ss_medium_button = None
+        self.ss_hard_button = None
 
         self.load_data()  # loads all the other data
 
@@ -201,8 +210,13 @@ class Game:
 
     def show_start_screen(self):
         """Shows the introductory start screen."""
-        self.game_mode = SINGLEPLAYER
-        self.single_player_colour = WHITE
+        self.pick_game_mode()
+        self.screen.fill(BLACK)
+
+        if self.game_mode == SINGLEPLAYER:
+            self.pick_colour()
+            self.screen.fill(BLACK)
+            self.pick_difficulty()
 
     def show_game_over_screen(self):
         """Shows the game over screen."""
@@ -227,11 +241,46 @@ class Game:
             for event in pygame.event.get():
 
                 if event.type == QUIT:
-                    waiting = False
-                    self.running = False
+                    raise SystemExit
 
                 if event.type == KEYUP:
-                    waiting = False
+
+                    if event.key == K_ESCAPE:
+                        raise SystemExit
+
+                if self.ss_singleplayer_button is not None and self.ss_multiplayer_button is not None:
+
+                    if "click" in self.ss_singleplayer_button.handleEvent(event):
+                        self.game_mode = SINGLEPLAYER
+                        waiting = False
+
+                    if "click" in self.ss_multiplayer_button.handleEvent(event):
+                        self.game_mode = MULTIPLAYER
+                        waiting = False
+
+                elif self.ss_white_button is not None and self.ss_black_button is not None:
+
+                    if "click" in self.ss_white_button.handleEvent(event):
+                        self.single_player_colour = WHITE
+                        waiting = False
+
+                    if "click" in self.ss_black_button.handleEvent(event):
+                        self.single_player_colour = BLACK
+                        waiting = False
+
+                elif self.ss_easy_button is not None and self.ss_medium_button is not None and self.ss_hard_button is not None:
+
+                    if "click" in self.ss_easy_button.handleEvent(event):
+                        self.stockfish_difficulty = EASY
+                        waiting = False
+
+                    if "click" in self.ss_medium_button.handleEvent(event):
+                        self.stockfish_difficulty = MEDIUM
+                        waiting = False
+
+                    if "click" in self.ss_hard_button.handleEvent(event):
+                        self.stockfish_difficulty = HARD
+                        waiting = False
 
     def load_data(self):
         """Loads the external data for the game."""
@@ -338,6 +387,79 @@ class Game:
 
         else:
             self.turn = WHITE
+
+    def pick_game_mode(self):
+        """First part of the start screen that allows the choice between SINGLEPLAYER and MULTIPLAYER."""
+
+        # text
+        self.draw_text("Welcome To: Chess", 90, BLUE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, self.screen)
+        self.draw_text("Would You Like To Play A 1 Or 2 Player Game?", 60, WHITE,
+                       SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.screen)
+
+        # buttons
+        self.ss_singleplayer_button = PygButton((SCREEN_WIDTH / 5, SCREEN_HEIGHT * 5 / 8,
+                                                 BUTTON_WIDTH, BUTTON_HEIGHT), "SINGLEPLAYER")
+        self.ss_multiplayer_button = PygButton((SCREEN_WIDTH * 4 / 5 - BUTTON_WIDTH, SCREEN_HEIGHT * 5 / 8,
+                                                BUTTON_WIDTH, BUTTON_HEIGHT), "MULTIPLAYER")
+        self.ss_singleplayer_button.draw(self.screen)
+        self.ss_multiplayer_button.draw(self.screen)
+
+        pygame.display.flip()
+        self.wait_for_key()
+
+        # resetting the buttons
+        self.ss_singleplayer_button = None
+        self.ss_multiplayer_button = None
+
+    def pick_colour(self):
+        """Second part of the start screen that allows the choice between WHITE and BLACK."""
+
+        # text
+        self.draw_text("Welcome To: Chess", 90, BLUE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, self.screen)
+        self.draw_text("Would You Like To Be WHITE Or BLACK?", 60, WHITE,
+                       SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.screen)
+
+        # buttons
+        self.ss_white_button = PygButton((SCREEN_WIDTH / 5, SCREEN_HEIGHT * 5 / 8,
+                                          BUTTON_WIDTH, BUTTON_HEIGHT), "WHITE", WHITE, BLACK)
+        self.ss_black_button = PygButton((SCREEN_WIDTH * 4 / 5 - BUTTON_WIDTH, SCREEN_HEIGHT * 5 / 8,
+                                          BUTTON_WIDTH, BUTTON_HEIGHT), "BLACK", BLACK, WHITE)
+        self.ss_white_button.draw(self.screen)
+        self.ss_black_button.draw(self.screen)
+
+        pygame.display.flip()
+        self.wait_for_key()
+
+        # resetting the buttons
+        self.ss_white_button = None
+        self.ss_black_button = None
+
+    def pick_difficulty(self):
+        """Third part of the start screen that allows the choice between EASY, MEDIUM, and HARD."""
+
+        # text
+        self.draw_text("Welcome To: Chess", 90, BLUE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, self.screen)
+        self.draw_text("What Difficulty Would You Like To Play At?", 60, WHITE,
+                       SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.screen)
+
+        # buttons
+        self.ss_easy_button = pygbutton.PygButton((BUTTON_WIDTH, SCREEN_HEIGHT * 5 / 8,
+                                                   BUTTON_WIDTH, BUTTON_HEIGHT), "EASY", SOFT_GREEN)
+        self.ss_medium_button = pygbutton.PygButton((SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2, SCREEN_HEIGHT * 5 / 8,
+                                                     BUTTON_WIDTH, BUTTON_HEIGHT), "MEDIUM", SOFT_YELLOW)
+        self.ss_hard_button = pygbutton.PygButton((SCREEN_WIDTH - BUTTON_WIDTH * 2, SCREEN_HEIGHT * 5 / 8,
+                                                   BUTTON_WIDTH, BUTTON_HEIGHT), "HARD", SOFT_RED)
+        self.ss_easy_button.draw(self.screen)
+        self.ss_medium_button.draw(self.screen)
+        self.ss_hard_button.draw(self.screen)
+
+        pygame.display.flip()
+        self.wait_for_key()
+
+        # resetting the buttons
+        self.ss_easy_button = None
+        self.ss_medium_button = None
+        self.ss_hard_button = None
 
 
 if __name__ == "__main__":
