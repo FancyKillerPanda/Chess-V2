@@ -232,15 +232,10 @@ class Piece(pygame.sprite.Sprite):
 
             self.game.moves_made.append(move)
 
-            if self.game.turn == WHITE:
-                self.game.turn = BLACK
-
-            else:
-                self.game.turn = WHITE
-
+            self.game.swap_turns()
             self.game.highlighted_piece = None
 
-        elif self.game.stockfish.is_move_correct("".join([move, "Q"])):
+        elif self.game.stockfish.is_move_correct("".join([move, "Q"])) and self.game.game_mode == MULTIPLAYER:
             self.fen_position = new_fen_pos
             self.tuple_position = fen_pos_to_tuple(self.fen_position)
             self.pixel_position = tuple_to_pixel_position(self.tuple_position)
@@ -256,12 +251,7 @@ class Piece(pygame.sprite.Sprite):
             self.promotion_move = move
             self.game.pawn_to_promote = self
 
-            if self.game.turn == WHITE:
-                self.game.turn = BLACK
-
-            else:
-                self.game.turn = WHITE
-
+            self.game.swap_turns()
             self.game.highlighted_piece = None
 
     def check_kill_piece(self):

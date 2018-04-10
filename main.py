@@ -76,6 +76,11 @@ class Game:
                                                     SCREEN_HEIGHT / 2 + PROMOTE_BUTTON_HEIGHT, PROMOTE_BUTTON_WIDTH,
                                                     PROMOTE_BUTTON_HEIGHT), "ROOK", BLACK, WHITE, font=font)
 
+        # tracks the parts of singleplayer game play
+        self.game_mode = MULTIPLAYER  # default multiplayer
+        self.single_player_colour = None
+        self.stockfish_difficulty = 1
+
         self.load_data()  # loads all the other data
 
     def new(self):
@@ -90,7 +95,7 @@ class Game:
         self.setup_board()
 
         # initialises the Stockfish engine
-        self.stockfish = Stockfish(STOCKFISH_EXE_PATH)
+        self.stockfish = Stockfish(path=STOCKFISH_EXE_PATH, depth=self.stockfish_difficulty)
 
         # calls the main loop
         self.run()
@@ -128,44 +133,49 @@ class Game:
                     self.playing = False
                     self.running = False
 
-            # on mouse click
-            if event.type == MOUSEBUTTONDOWN:
+            if self.game_mode == MULTIPLAYER or self.game_mode == SINGLEPLAYER and self.turn == self.single_player_colour:
 
-                # when not currently in the menu to promote a pawn
-                if not self.promoting:
+                # on mouse click
+                if event.type == MOUSEBUTTONDOWN:
 
-                    for tile in self.tiles_list:
+                    # when not currently in the menu to promote a pawn
+                    if not self.promoting:
 
-                        # moves the piece when a highlighted square is clicked
-                        if is_clicked(tile.rect) and self.highlighted_piece is not None:
-                            self.highlighted_piece.make_move(tile)
+                        for tile in self.tiles_list:
 
-                    for piece in self.pieces_list:
+                            # moves the piece when a highlighted square is clicked
+                            if is_clicked(tile.rect) and self.highlighted_piece is not None:
+                                self.highlighted_piece.make_move(tile)
 
-                        if is_clicked(piece.rect):
+                        for piece in self.pieces_list:
 
-                            # when the piece is clicked, highlight its legal moves
-                            if piece.colour == self.turn:
-                                piece.highlight_legal_moves()
-                                self.highlighted_piece = piece
+                            if is_clicked(piece.rect):
 
-            if self.promoting:
+                                # when the piece is clicked, highlight its legal moves
+                                if piece.colour == self.turn:
+                                    piece.highlight_legal_moves()
+                                    self.highlighted_piece = piece
 
-                if "click" in self.promote_to_queen.handleEvent(event):
-                    self.promoting = False
-                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, QUEEN)
+                if self.promoting:
 
-                elif "click" in self.promote_to_knight.handleEvent(event):
-                    self.promoting = False
-                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, KNIGHT)
+                    if "click" in self.promote_to_queen.handleEvent(event):
+                        self.promoting = False
+                        self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, QUEEN)
 
-                elif "click" in self.promote_to_bishop.handleEvent(event):
-                    self.promoting = False
-                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, BISHOP)
+                    elif "click" in self.promote_to_knight.handleEvent(event):
+                        self.promoting = False
+                        self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, KNIGHT)
 
-                elif "click" in self.promote_to_rook.handleEvent(event):
-                    self.promoting = False
-                    self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, ROOK)
+                    elif "click" in self.promote_to_bishop.handleEvent(event):
+                        self.promoting = False
+                        self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, BISHOP)
+
+                    elif "click" in self.promote_to_rook.handleEvent(event):
+                        self.promoting = False
+                        self.pawn_to_promote.promote_pawn(self.pawn_to_promote.promotion_move, ROOK)
+
+            else:
+                self.make_ai_move()
 
     def draw(self):
         """Draws the sprites to the screen."""
@@ -191,7 +201,8 @@ class Game:
 
     def show_start_screen(self):
         """Shows the introductory start screen."""
-        pass
+        self.game_mode = SINGLEPLAYER
+        self.single_player_colour = WHITE
 
     def show_game_over_screen(self):
         """Shows the game over screen."""
@@ -296,6 +307,37 @@ class Game:
                     black_piece_count = 0
                     black_y -= DEAD_PIECE_SIZE + 10
                     black_x = TILE_SIZE * 8 + TILE_KEY_SIZE + 60
+
+    def make_ai_move(self):
+        """Allows Stockfish to make a move."""
+        move = self.stockfish.get_best_move()
+        piece_square = move[:2]
+
+        if self.single_player_colour == WHITE:
+            comp_colour = BLACK
+
+        else:
+            comp_colour = WHITE
+
+        for piece in self.pieces_list:
+
+            if piece.colour == comp_colour:
+
+                if piece.fen_position == piece_square:
+
+                    for tile in self.tiles_list:
+
+                        if tile.fen_position == move[2:4]:
+                            piece.make_move(tile)
+
+    def swap_turns(self):
+        """Changes who's turn it is."""
+
+        if self.turn == WHITE:
+            self.turn = BLACK
+
+        else:
+            self.turn = WHITE
 
 
 if __name__ == "__main__":
