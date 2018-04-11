@@ -285,7 +285,7 @@ class Game:
     def load_data(self):
         """Loads the external data for the game."""
 
-        # directory that the main.py file is in
+        # directory that the main.pyw file is in
         self.dir = path.dirname(__file__)
 
         # image directory
